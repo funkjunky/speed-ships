@@ -19,7 +19,8 @@ export default () => ({
     entityType: 'ship',
     x: 100,
     y: 100,
+    vely: -100,
+    velx: 0,
     scale: 5,
-    friction: 100,
-    terminal: 300,
+    direction: 0,
 });

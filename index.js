@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
     }));
 
+    /*
     // handle collision of asteroid with ship.
     store.dispatch(addTick(function* _asteroidShip(dt) {
         const player = store.getState().entities[0];
@@ -96,6 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }));
     }
+    */
 
     // Add stars
     {

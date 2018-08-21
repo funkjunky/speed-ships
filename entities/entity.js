@@ -14,24 +14,6 @@ export default (state, action) => {
             let velx = state.accx * pps + state.velx;
             let vely = state.accy * pps + state.vely;
 
-            const magnitude = Math.sqrt(velx*velx + vely*vely);
-            const terminal = state.terminal || 250;
-            if (state.entityType !== 'bullet' && magnitude > terminal) {
-                velx = (velx / magnitude) * terminal;
-                vely = (vely / magnitude) * terminal;
-            }
-
-            // apply friction to the velocity
-            if (state.friction) {
-                    velx = (velx > 0
-                            ? (velx - state.friction * pps)
-                            : (velx + state.friction * pps));
-
-                    vely = (vely > 0
-                            ? (vely - state.friction * pps)
-                            : (vely + state.friction * pps));
-            }
-
             let x = state.velx * pps + state.x;
             if (x < 0) x = MAX_WIDTH - x;
             else if (x > MAX_WIDTH) x = x - MAX_WIDTH;

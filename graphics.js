@@ -19,7 +19,7 @@ export default (ctx, state, dt) => {
         }
 
         if (entity.id === 0) {
-            ctx.rotate(entity.rotation);
+            ctx.rotate(entity.rotation - state.entities[0].rotation);
             ctx.strokeStyle = c.red;
             ctx.fillStyle = c.red;
             if (state.game.deathCount) {
@@ -45,15 +45,22 @@ export default (ctx, state, dt) => {
     };
 
     ctx.save();
+    // ctx.setTransform(1, 0, 0, 1, 0, 0);
+    // ctx.scale(0.5, 0.5);
 
     //BEGIN ACTUAL GRAPHICS
     ctx.clearRect(0, 0, 640, 480);
+    const camera = { x: 320, y: 360 };
 
     // draw stars
     state.stars.forEach(star => {
         ctx.save();
         const { x, y, depth } = star;
-        ctx.translate((320 - state.entities[0].x) / star.depth, (240 - state.entities[0].y) / star.depth);
+        // TODO: these three lines handle camera for everything??
+        ctx.translate(camera.x, camera.y);
+        ctx.rotate(-state.entities[0].rotation);
+        ctx.translate(-camera.x, -camera.y);
+        ctx.translate((camera.x - state.entities[0].x) / star.depth, (camera.y - state.entities[0].y) / star.depth);
         const radius = 1;
         // need to add more halo for close ones...
         let gradient = ctx.createRadialGradient(x, y, radius, x, y, 8 * (star.bloom || star.downBloom || 1) / star.depth);
@@ -67,9 +74,9 @@ export default (ctx, state, dt) => {
         ctx.restore();
     });
 
+    ctx.save();
     // centre translate on ship location and half of screen
-    ctx.translate(320 - state.entities[0].x, 240 - state.entities[0].y);
-
+    ctx.translate(camera.x - state.entities[0].x, camera.y - state.entities[0].y);
     // draw entities
     Object.values(state.entities).reverse().forEach(entity => {
         ctx.save();
@@ -78,25 +85,35 @@ export default (ctx, state, dt) => {
             y: Math.abs(state.entities[0].y - entity.y) - entity.scale * 6,
         };
         //Only draw things on the screen.
-        if (distanceFromPlayer.x < 320 && distanceFromPlayer.y < 240) {
+        if (distanceFromPlayer.x < camera.x && distanceFromPlayer.y < camera.y) {
             drawEntity(entity);
         }
         ctx.restore();
     });
+    ctx.restore();
 
+    ctx.save();
+    ctx.translate(camera.x, camera.y);
+    ctx.rotate(-state.entities[0].rotation);
+    ctx.translate(-state.entities[0].x, -state.entities[0].y);
     //Draw strips to hide outside bounded items
     ctx.lineWidth = 240;
     ctx.strokeStyle = "black";
     ctx.strokeRect(-122, -122, 1523, 1203);
+    ctx.restore();
 
     // draw bounds
+    ctx.save();
+    ctx.translate(camera.x, camera.y);
+    ctx.rotate(-state.entities[0].rotation);
+    ctx.translate(-state.entities[0].x, -state.entities[0].y);
     ctx.strokeStyle = c.darkGreen;
     ctx.lineWidth = 5;
     // TODO: max_height, max_width (in entities/entity.js)
     ctx.strokeRect(0, 0, 1280, 960);
-
     ctx.restore();
 
+    // TODO: note rotated with camera.
     ctx.save();
     ctx.translate(640, 10);
     //ctx.fillStyle = c.orange;

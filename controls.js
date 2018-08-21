@@ -46,37 +46,15 @@ export default store => {
     };
 
     if (!mobileAndTabletcheck()) {
-        document.addEventListener('mouseup', fireBullet);
+        const turnPlayerCounterClockwise = id => ({ type: 'TURN_CCW', id });
+        const turnPlayerClockwise = id => ({ type: 'TURN_CW', id });
 
-        document.addEventListener('mousemove', e => {
-            if (!store.getState().entities[0]) return;
-            const x = e.clientX - store.getState().entities[0].x;
-            const y = e.clientY - store.getState().entities[0].y;
-            const rotation = getRadiansFromVector(x, y);
-
-            store.dispatch({
-                type: 'FACE',
-                id: 0,
-                rotation,
-            });
+        document.addEventListener('keyup', e => {
+            if (e.keyCode === 37)   store.dispatch(turnPlayerCounterClockwise(0));
+            if (e.keyCode === 39)   store.dispatch(turnPlayerClockwise(0));
+            if (e.keyCode === 32)   fireBullet();
         });
-
-        let keysPressed = {};
-        let dispatchAddAcc = () => {
-            let accx = 0.001;
-            let accy = 0.001;
-            if (keysPressed[37] && !keysPressed[39]) accx = -700;
-            else if (!keysPressed[37] && keysPressed[39]) accx = 700;
-
-            if (keysPressed[38] && !keysPressed[40]) accy = -700;
-            else if (!keysPressed[38] && keysPressed[40]) accy = 700;
-
-            store.dispatch({ type: 'ADD_ACC', id: 0, accx, accy });
-        };
-        // First store the key change, then update ADD_ACC accordingly.
-        document.addEventListener('keydown', e => dispatchAddAcc(keysPressed[e.keyCode] = true));
-        document.addEventListener('keyup', e => dispatchAddAcc(keysPressed[e.keyCode] = false));
-
+        document.addEventListener('mouseup', fireBullet);
     } else {
         const ratioX = window.screen.availWidth / 640;  //TODO: replace 640 and 480 with canvas.width height
         const ratioY = window.screen.availHeight / 480;  //TODO: replace 640 and 480 with canvas.width height
