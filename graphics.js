@@ -19,7 +19,7 @@ export default (ctx, state, dt) => {
         }
 
         if (entity.id === 0) {
-            ctx.rotate(entity.rotation - state.entities[0].rotation);
+            ctx.rotate(entity.rotation);
             ctx.strokeStyle = c.red;
             ctx.fillStyle = c.red;
             if (state.game.deathCount) {
@@ -76,7 +76,9 @@ export default (ctx, state, dt) => {
 
     ctx.save();
     // centre translate on ship location and half of screen
-    ctx.translate(camera.x - state.entities[0].x, camera.y - state.entities[0].y);
+    ctx.translate(camera.x, camera.y);
+    ctx.rotate(-state.entities[0].rotation);
+    ctx.translate(-state.entities[0].x, -state.entities[0].y);
     // draw entities
     Object.values(state.entities).reverse().forEach(entity => {
         ctx.save();

@@ -16,14 +16,14 @@ export default (state, { type, id, accx = 0, accy = 0, rotation, ...status }) =>
             if (id !== state.id) return state;
             return {
                 ...state,
-                ...DIRECTIONS[state.direction === 0 ? (DIRECTIONS.length - 1) : (state.direction - 1)]
+                ...DIRECTIONS[state.direction === 0 ? (DIRECTIONS.length - 1) : (state.direction - 1)],
             };
 
         case 'TURN_CW':
             if (id !== state.id) return state;
             return {
                 ...state,
-                ...DIRECTIONS[DIRECTIONS.length - 1 === state.direction ? 0 : state.direction + 1]
+                ...DIRECTIONS[DIRECTIONS.length - 1 === state.direction ? 0 : state.direction + 1],
             };
 
         // TODO: this is old

@@ -14,11 +14,11 @@ export default (state, action) => {
             let velx = state.accx * pps + state.velx;
             let vely = state.accy * pps + state.vely;
 
-            let x = state.velx * pps + state.x;
+            let x = state.velx * (state.speed || 1) * pps + state.x;
             if (x < 0) x = MAX_WIDTH - x;
             else if (x > MAX_WIDTH) x = x - MAX_WIDTH;
 
-            let y = state.vely * pps + state.y;
+            let y = state.vely * (state.speed || 1) * pps + state.y;
             if (y < 0) y = MAX_HEIGHT - y;
             else if (y > MAX_HEIGHT) y = y - MAX_HEIGHT;
 

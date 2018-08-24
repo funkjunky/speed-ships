@@ -15,8 +15,8 @@ export default () => ({
     entityType: 'asteroid',
     name: randomInt(1000),
     shape: getAsteroidShape(),
-    x: 30 + Math.random() * (640 - 30),    // - scale * normal TODO const
-    y: 30 + Math.random() * (480 - 30),
+    x: 30 + Math.random() * (1280 - 30),    // - scale * normal TODO const
+    y: 30 + Math.random() * (960 - 30),
     velx: Math.random() * 50 - 25,
     vely: Math.random() * 50 - 25,
     scale: 5,

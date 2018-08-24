@@ -61,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
     }));
 
-    /*
     // handle collision of asteroid with ship.
     store.dispatch(addTick(function* _asteroidShip(dt) {
         const player = store.getState().entities[0];
@@ -83,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // This spawns asteroids, until there are 10 of them.
     {
-        const MAX_ASTEROIDS = 10;
+        const MAX_ASTEROIDS = 20;
         const ASTEROID_CD = 1000;
         let tillSpawn = ASTEROID_CD;
         store.dispatch(addTick(function* _spawn_asteroids(dt) {
@@ -97,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }));
     }
-    */
 
     // Add stars
     {
