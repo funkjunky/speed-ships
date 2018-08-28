@@ -11,20 +11,21 @@ export default (state, action) => {
         case 'UPDATE_PHYSICS':
             const pps = action.dt / 1000;
 
-            let velx = state.accx * pps + state.velx;
-            let vely = state.accy * pps + state.vely;
+            let speed = state.speed || 1;
+            if (state.boosting) speed *= 1.5;
+            if (state.ramming) speed *= 2;
 
-            let x = state.velx * (state.speed || 1) * pps + state.x;
+            let x = state.velx * speed * pps + state.x;
             if (x < 0) x = MAX_WIDTH - x;
             else if (x > MAX_WIDTH) x = x - MAX_WIDTH;
 
-            let y = state.vely * (state.speed || 1) * pps + state.y;
+            let y = state.vely * speed * pps + state.y;
             if (y < 0) y = MAX_HEIGHT - y;
             else if (y > MAX_HEIGHT) y = y - MAX_HEIGHT;
 
             const rotation = (state.rotationVel || 0) * action.dt + state.rotation;
 
-            return { ...state, velx, vely, x, y, rotation };
+            return { ...state, x, y, rotation };
 
         default:
             if (reducers[state.entityType]) {

@@ -2,8 +2,75 @@ import { put } from 'redux-yield-effect/lib/effects';
 import { addTick } from 'effect-tick';
 
 import { createEntity, removeEntity } from './entities';
+import { DIRECTIONS } from './entities/ship';
 //TODO: randomInt in createAsteroid
 const randomInt = max => Math.floor(Math.random() * max);
+
+const sleep = ms =>
+    addTick(function* (dt) {
+        return (ms -= dt) < 0;
+    });
+
+const nearly2PI = Math.PI * 7 / 4;
+// a linear tween.
+const tween = (model, props, duration, updateAction) => {
+    let elapsed = 0;
+    return addTick(function*(dt) {
+        elapsed += dt;
+        const nextProps = {};
+        Object.keys(props).map(k => {
+            let difference = props[k] - model[k];
+            // Special case for rotating between 2pi for circles.
+            if (props[k] === nearly2PI && model[k] === 0)         difference = -Math.PI / 4;
+            else if (model[k] === nearly2PI && props[k] === 0)    difference = Math.PI / 4;
+            nextProps[k] = model[k] + difference * (elapsed / duration);
+        });
+
+        if (elapsed <= duration) {
+            yield put(updateAction(nextProps, elapsed, duration));
+        } else {
+            // when we've went over the duration, set the tween ending to exactly where we wanted it to be.
+            yield put(updateAction(props, duration, duration));
+            return true;
+        }
+    });
+};
+
+const turnCW = function*(ship) {
+    yield put(tween(
+        ship,
+        DIRECTIONS[(ship.direction + 1) % 8],
+        150,
+        // TODO: lazy
+        props => ({ type: 'STATUS', ...props, id: ship.id }),
+    ));
+    yield put({ type: 'STATUS', id: ship.id, direction: (ship.direction + 1) % 8 });
+};
+
+const turnCCW = function*(ship) {
+    yield put(tween(
+        ship,
+        DIRECTIONS[(7 + ship.direction) % 8],
+        150,
+        // TODO: lazy
+        props => ({ type: 'STATUS', ...props, id: ship.id }),
+    ));
+    yield put({ type: 'STATUS', id: ship.id, direction: (7 + ship.direction) % 8 });
+};
+
+// TODO: is there a nice way to do these temporary state changes?
+//          It's similar to casting in an MMO
+const ram = function* () {
+    yield put({ type: 'SET_RAMMING', ramming: true, id: 0 });
+    yield put(sleep(1000));
+    yield put({ type: 'SET_RAMMING', ramming: false, id: 0 });
+};
+
+const boost = function* () {
+    yield put({ type: 'SET_BOOSTING', boosting: true, id: 0 });
+    yield put(sleep(2000));
+    yield put({ type: 'SET_BOOSTING', boosting: false, id: 0 });
+};
 
 const getBulletShape = () => [
     [ randomInt(4) - 6, randomInt(4) - 6 ],
@@ -26,35 +93,14 @@ const createBullet = (x, y, velx, vely, rotation) => ({
 const getRadiansFromVector = (x, y) => 0.5 * Math.PI + Math.atan2(y || 0.1, x || 0.1);
 export default store => {
 
-    const fireBullet = () => {
-        const player = store.getState().entities[0];
-        if (player.invuln) return;
-        store.dispatch(function* _fire() {
-            const asteroids = () => Object.values(store.getState().entities).filter(e => e.entityType === 'asteroid');
-            let bullet = yield put(createEntity(createBullet(player.x, player.y, player.velx, player.vely, player.rotation)));
-            let lifeSpan = 2000;
-            yield put(addTick(function* (dt) {
-                const asteroid = asteroids().find(a => Math.abs(a.x - bullet().x) < 20 && Math.abs(a.y - bullet().y) < 20);
-                if (asteroid) {
-                    yield put(removeEntity(() => asteroid));
-                    yield put({ type: 'KILL_INC' });
-                }
-                return (lifeSpan -= dt) < 0 || asteroid;
-            }));
-            yield put(removeEntity(bullet));
-        }());
-    };
-
     if (!mobileAndTabletcheck()) {
-        const turnPlayerCounterClockwise = id => ({ type: 'TURN_CCW', id });
-        const turnPlayerClockwise = id => ({ type: 'TURN_CW', id });
-
         document.addEventListener('keyup', e => {
-            if (e.keyCode === 37)   store.dispatch(turnPlayerCounterClockwise(0));
-            if (e.keyCode === 39)   store.dispatch(turnPlayerClockwise(0));
-            if (e.keyCode === 32)   fireBullet();
+            // console.log('code: ', e.code);
+            if (e.keyCode === 37)   store.dispatch(turnCCW(store.getState().entities[0]));
+            if (e.keyCode === 39)   store.dispatch(turnCW(store.getState().entities[0]));
+            if (e.keyCode === 32)   store.dispatch(ram());
+            if (e.code === 'KeyB')  store.dispatch(boost());
         });
-        document.addEventListener('mouseup', fireBullet);
     } else {
         const ratioX = window.screen.availWidth / 640;  //TODO: replace 640 and 480 with canvas.width height
         const ratioY = window.screen.availHeight / 480;  //TODO: replace 640 and 480 with canvas.width height
@@ -138,7 +184,6 @@ export default store => {
                     id: 0,
                     rotation,
                 });
-                fireBullet();
             }
         };
         document.addEventListener('touchend', handleEnd);

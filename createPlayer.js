@@ -21,7 +21,10 @@ export default () => ({
     y: 100,
     vely: -70,
     velx: 0,
-    speed: 2,
+    speed: 4,
+    boosting: false,
+    ramming: false,
     scale: 5,
     direction: 0,
+    rotation: 0,
 });

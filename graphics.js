@@ -98,6 +98,17 @@ export default (ctx, state, dt) => {
     ctx.translate(camera.x, camera.y);
     ctx.rotate(-state.entities[0].rotation);
     ctx.translate(-state.entities[0].x, -state.entities[0].y);
+
+    // TODO: add this to entities to destroy ship
+    //Draw fake walls to see if it's exciting
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = c.purple;
+    ctx.strokeRect(200, 400, 400, 100);
+    ctx.strokeRect(200, 700, 700, 100);
+    ctx.strokeRect(500, 0, 100, 400);
+    ctx.strokeRect(800, 0, 100, 700);
+    ctx.restore();
+
     //Draw strips to hide outside bounded items
     ctx.lineWidth = 240;
     ctx.strokeStyle = "black";
