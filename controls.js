@@ -13,27 +13,46 @@ const sleep = ms =>
 
 const nearly2PI = Math.PI * 7 / 4;
 // a linear tween.
-const tween = (model, props, duration, updateAction) => {
+const tween = (model, props, duration, updateAction, onEnd) => {
     let elapsed = 0;
-    return addTick(function*(dt) {
-        elapsed += dt;
-        const nextProps = {};
-        Object.keys(props).map(k => {
-            let difference = props[k] - model[k];
-            // Special case for rotating between 2pi for circles.
-            if (props[k] === nearly2PI && model[k] === 0)         difference = -Math.PI / 4;
-            else if (model[k] === nearly2PI && props[k] === 0)    difference = Math.PI / 4;
-            nextProps[k] = model[k] + difference * (elapsed / duration);
-        });
+    let closingAction = 'FULL_DURATION';
+    let promiseResolve;
+    let promise = new Promise(resolve => promiseResolve = resolve);
+    return {
+        rollback: () => interrupt = 'ROLLBACK',
+        finishImmediately: () => interrupt = 'FINISH_IMMEDIATELY',
+        promise,
+        action: addTick(function*(dt) {
+            elapsed += dt;
+            const nextProps = {};
+            Object.keys(props).map(k => {
+                let difference = props[k] - model[k];
+                // Special case for rotating between 2pi for circles.
+                if (props[k] === nearly2PI && model[k] === 0)         difference = -Math.PI / 4;
+                else if (model[k] === nearly2PI && props[k] === 0)    difference = Math.PI / 4;
+                nextProps[k] = model[k] + difference * (elapsed / duration);
+            });
 
-        if (elapsed <= duration) {
-            yield put(updateAction(nextProps, elapsed, duration));
-        } else {
-            // when we've went over the duration, set the tween ending to exactly where we wanted it to be.
-            yield put(updateAction(props, duration, duration));
-            return true;
-        }
-    });
+            // TODO: refactor this.
+            if (closingAction === 'ROLLBACK') {
+                // create an object with the original values, but only for the props keys.
+                let modelProps = {};
+                Object.keys(props).forEach(k => modelProps[k] = model[k]);
+
+                // TODO: same three lines as the else statement.
+                yield put(updateAction(modelProps, duration, duration));
+                promiseResolve(closingAction);
+                return true;
+            } else if (elapsed <= duration && closingAction !== 'FINISH_IMMEDIATELY') {
+                yield put(updateAction(nextProps, elapsed, duration));
+            } else {
+                // when we've went over the duration, set the tween ending to exactly where we wanted it to be.
+                yield put(updateAction(props, duration, duration));
+                promiseResolve(closingAction);
+                return true;
+            }
+        }),
+    };
 };
 
 const turnCW = function*(ship) {
@@ -41,10 +60,14 @@ const turnCW = function*(ship) {
         ship,
         DIRECTIONS[(ship.direction + 1) % 8],
         150,
-        // TODO: lazy
-        props => ({ type: 'STATUS', ...props, id: ship.id }),
-    ));
-    yield put({ type: 'STATUS', id: ship.id, direction: (ship.direction + 1) % 8 });
+        props => ({
+            meta: { tick: true },
+            type: 'TURN_SHIP',
+            id: ship.id,
+            ...props,
+        }),
+    ).action);
+    yield put({ type: 'SET_DIRECTION', id: ship.id, direction: (ship.direction + 1) % 8 });
 };
 
 const turnCCW = function*(ship) {
@@ -52,10 +75,14 @@ const turnCCW = function*(ship) {
         ship,
         DIRECTIONS[(7 + ship.direction) % 8],
         150,
-        // TODO: lazy
-        props => ({ type: 'STATUS', ...props, id: ship.id }),
-    ));
-    yield put({ type: 'STATUS', id: ship.id, direction: (7 + ship.direction) % 8 });
+        props => ({
+            meta: { tick: true },
+            type: 'TURN_SHIP',
+            id: ship.id,
+            ...props,
+        }),
+    ).action);
+    yield put({ type: 'SET_DIRECTION', id: ship.id, direction: (7 + ship.direction) % 8 });
 };
 
 // TODO: is there a nice way to do these temporary state changes?

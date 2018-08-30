@@ -22,6 +22,7 @@ export default () => ({
     vely: -70,
     velx: 0,
     speed: 4,
+    speedMultiplier: 1,
     boosting: false,
     ramming: false,
     scale: 5,

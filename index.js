@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // This updates the physics
     store.dispatch(addTick(function* _update_physics(dt) {
         yield put({
+            meta: { tick: true },
             type: 'UPDATE_PHYSICS',
             dt
         });

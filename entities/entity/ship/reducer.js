@@ -10,43 +10,36 @@ export const DIRECTIONS = [
     { velx: -50, vely: -50, rotation: qPI * 7 },
 ];
 
-export default (state, { type, id, accx = 0, accy = 0, ramming, boosting, ...status }) => {
+export default (state, { type, id, velx = 0, vely = 0, ramming, boosting, rotation, direction }) => {
     switch(type) {
         case 'TURN_CCW':
-            if (id !== state.id) return state;
             return {
                 ...state,
                 ...DIRECTIONS[state.direction === 0 ? (DIRECTIONS.length - 1) : (state.direction - 1)],
             };
 
         case 'TURN_CW':
-            if (id !== state.id) return state;
             return {
                 ...state,
                 ...DIRECTIONS[DIRECTIONS.length - 1 === state.direction ? 0 : state.direction + 1],
             };
 
         case 'SET_RAMMING':
-            if (id !== state.id) return state;
             return {
                 ...state,
                 ramming,
             };
 
         case 'SET_BOOSTING':
-            if (id !== state.id) return state;
             return {
                 ...state,
                 boosting,
             };
 
-        // TODO: what is this?
-        case 'STATUS':
-            console.log('staus: ', status.rotation, status);
-            if (id !== state.id) return state;
+        case 'SET_DIRECTION':
             return {
                 ...state,
-                ...status,
+                direction,
             };
 
         default:
